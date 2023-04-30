@@ -1,0 +1,114 @@
+#!/bin/bash
+# Coffin, as in COde FINd
+VIM=1 # Output formatted for vim (-v, -V)
+COLOR="--color=always"
+FILES=0 # Only print filenames (-f)
+ROOT="$PWD"
+EXT="." # Default extension (-e)
+DEBUG=0 # Print some debug info (-D)
+FIXED=0 # Uses regex by default (-F)
+MAXDEPTH=65536 # for `find`
+DEFAULT_PRUNE=( "node_modules" ".git" ".*" )
+
+usage="Usage: coffin [OPTION]... PATTERN"
+
+function debug {
+	if [ $DEBUG -eq 1 ];then
+		for arg in $@;do
+			echo "$arg : ${!arg}"
+		done
+	fi
+}
+
+function make_prune {
+    # We need to have prune expr start with the 
+	prunes=("${DEFAULT_PRUNE[@]}")
+	prunes+=("$@")
+    debug prunes[@]
+	prune_expr=( \( -name "${prunes[0]}" )
+	# pops prunes' first elem
+	prunes=("${prunes[@]:1}")
+	for arg in "${prunes[@]}"; do
+		prune_expr+=( -o -name "$arg" )
+	done
+	prune_expr+=( \) -prune -o )
+	#debug prune_expr[@]
+}
+
+make_prune
+
+while getopts "E:e:b:hcVvfFd:D" opt; do
+	case $opt in
+		h)	echo $usage 
+			echo "Takes a PCRE regex pattern, a root to start searching "
+			echo "from and one or more file extension. Looks for the pattern in"
+			echo "all files with the given extension(s), starting at the root"
+			echo "	-v disables the vim-friendly formatting"
+			echo "	-V prints only filenames and line numbers for vim"
+			echo "	-f prints only filenames and disables colored output"
+			echo "	-F fixed string matching instead of regex"
+			echo "	-c disables colored output"
+			echo "	-b ARG specify the root of the search (pwd by default)"
+			echo "	-D prints debug infos"
+			echo "	-d sets max depth to look in"
+			echo "	-e \"ARG...\" specifies the extensions of the search (all by default)"
+			echo "	-E \"ARG...\" specifies the path(s) to exclude"
+			exit 0;;
+		v)	VIM=0;;
+		V)	COLOR="--color=never"
+			VIM=2;;
+		e)	EXT=$(join_by "|" $OPTARG);;
+		E)	make_prune $OPTARG;;
+		D)	DEBUG=1;;
+		d)	MAXDEPTH=$OPTARG;;
+		b)	if [ -d "$OPTARG" ]; then	
+				ROOT="$OPTARG"
+			else
+				echo "$OPTARG is not a valid directory"
+				exit 1
+			fi;;
+		c)	COLOR="--color=never";;
+		f)	COLOR="--color=never"
+			FILES=1;;
+		F)	FIXED=1;;
+		*)	echo $usage
+			echo "Try 'coffin -h' for more information."
+			exit 1;;
+	esac
+done
+shift $((OPTIND -1)) 
+
+# Not enough args or ROOT not a directory
+if [ $# -lt 1 ];then 
+	echo $usage
+	echo "Try 'coffin -h' for more information."
+	exit 1
+elif [ $# -gt 1 ];then
+	echo "$# args. Do you want to continue ? (y/any)"
+	read ans
+	if [ "$ans" != "y" ]; then
+		echo "Aborting execution"
+		exit 1
+	fi
+fi
+
+pattern="$1"
+debug VIM FILES ROOT EXT COLOR pattern
+
+files=$(find "$ROOT"/ -maxdepth $MAXDEPTH "${prune_expr[@]}" -type f -print | grep -Pi "$EXT\$" | sed 's/ /\\ /g')
+debug files
+#TODO: tidy it up
+[[ $FIXED = 0 ]] && raw=$(xargs grep -PHIin $COLOR "$pattern" <<< $files)
+[[ $FIXED = 1 ]] && raw=$(xargs grep -FHIn $COLOR "$pattern" <<< $files)
+debug raw
+
+if [ $FILES -eq 1 ]; then
+	echo -e "$raw" | sed -e 's/:.*//'
+elif [ $VIM -eq 0 ]; then
+	echo -e "$raw"	
+elif [ $VIM -eq 1 ]; then
+	echo -e "$raw" | sed -e 's/:/ +/' -e 's/:/ : /' -e 's/    \|	//g'
+elif [ $VIM -eq 2 ]; then
+	echo -e "$raw" | sed -e 's/:/ +/' -e 's/:.*//'
+fi
+# WIP : add -v features
