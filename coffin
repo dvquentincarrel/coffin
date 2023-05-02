@@ -95,7 +95,7 @@ fi
 pattern="$1"
 debug VIM FILES ROOT EXT COLOR pattern
 
-files=$(find "$ROOT"/ -maxdepth $MAXDEPTH "${prune_expr[@]}" -type f -print | grep -Pi "$EXT\$" | sed 's/ /\\ /g')
+files=$(find -L "$ROOT"/ -maxdepth $MAXDEPTH "${prune_expr[@]}" -type f -print | grep -Pi "$EXT\$" | sed 's/ /\\ /g')
 debug files
 #TODO: tidy it up
 [[ $FIXED = 0 ]] && raw=$(xargs grep -PHIin $COLOR "$pattern" <<< $files)
