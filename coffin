@@ -1,3 +1,12 @@
+#!/bin/python
+# Coffin as in COde FINder
+import os
+import yaml
+
+
+
+
+
 #!/bin/bash
 # Coffin, as in COde FINd
 VIM=1 # Output formatted for vim (-v, -V)

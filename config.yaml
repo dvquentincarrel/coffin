@@ -1,0 +1,12 @@
+VIM: 1 # Output formatted to be passed as args to vim
+COLOR: --color=always # Passed to grep
+FILES: 0 # Only outputs filenames
+ROOT: $PWD
+EXT: . # Default extension (-e)
+DEBUG: 0 # Print some debug info (-D)
+FIXED: 0 # Uses regex by default (-F)
+MAXDEPTH: 65536 # for `find`
+DEFAULT_PRUNE:
+  - node_modules
+  - .git
+  - .*
