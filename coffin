@@ -7,8 +7,9 @@ ROOT="$PWD"
 EXT="." # Default extension (-e)
 DEBUG=0 # Print some debug info (-D)
 FIXED=0 # Uses regex by default (-F)
+GIT_FILES=false # Uses git ls-files instead of find
 MAXDEPTH=65536 # for `find`
-DEFAULT_PRUNE=( "node_modules" ".git" ".*" )
+DEFAULT_PRUNE=( "node_modules" ".git" ".*")
 
 usage="Usage: coffin [OPTION]... PATTERN"
 
@@ -37,7 +38,7 @@ function make_prune {
 
 make_prune
 
-while getopts "E:e:b:hcVvfFd:D" opt; do
+while getopts "E:e:b:hcVvfFd:Dg" opt; do
 	case $opt in
 		h)	echo $usage 
 			echo "Takes a PCRE regex pattern, a root to start searching "
@@ -71,6 +72,7 @@ while getopts "E:e:b:hcVvfFd:D" opt; do
 		f)	COLOR="--color=never"
 			FILES=1;;
 		F)	FIXED=1;;
+		g)	GIT_FILES=true;;
 		*)	echo $usage
 			echo "Try 'coffin -h' for more information."
 			exit 1;;
@@ -95,7 +97,12 @@ fi
 pattern="$1"
 debug VIM FILES ROOT EXT COLOR pattern
 
-files=$(find -L "$ROOT"/ -maxdepth $MAXDEPTH "${prune_expr[@]}" -type f -print | grep -Pi "$EXT\$" | sed 's/ /\\ /g')
+if [[ $GIT_FILES ]]; then
+    raw_files=$(git ls-files)
+else
+    raw_files=$(find -L "$ROOT"/ -maxdepth $MAXDEPTH "${prune_expr[@]}" -type f -print)
+fi
+files=$(grep -Pi "$EXT\$" <<< "$raw_files" | sed 's/ /\\ /g')
 debug files
 #TODO: tidy it up
 [[ $FIXED = 0 ]] && raw=$(xargs grep -PHIin $COLOR "$pattern" <<< $files)
