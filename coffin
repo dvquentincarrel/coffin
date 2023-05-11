@@ -97,7 +97,7 @@ fi
 pattern="$1"
 debug VIM FILES ROOT EXT COLOR pattern
 
-if [[ $GIT_FILES ]]; then
+if $GIT_FILES; then
     raw_files=$(git ls-files)
 else
     raw_files=$(find -L "$ROOT"/ -maxdepth $MAXDEPTH "${prune_expr[@]}" -type f -print)
