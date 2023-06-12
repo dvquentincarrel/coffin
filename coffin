@@ -10,6 +10,7 @@ FIXED=0 # Uses regex by default (-F)
 GIT_FILES=false # Uses git ls-files instead of find
 MAXDEPTH=65536 # for `find`
 DEFAULT_PRUNE=( "node_modules" ".git" ".*")
+ENTIRE_PATH=true
 
 usage="Usage: coffin [OPTION]... PATTERN"
 
@@ -38,7 +39,8 @@ function make_prune {
 
 make_prune
 
-while getopts "E:e:b:hcVvfFd:Dg" opt; do
+
+while getopts "b:cDe:E:fFghpvV" opt; do
 	case $opt in
 		h)	echo $usage 
 			echo "Takes a PCRE regex pattern, a root to start searching "
@@ -50,6 +52,7 @@ while getopts "E:e:b:hcVvfFd:Dg" opt; do
 			echo "	-F fixed string matching instead of regex"
 			echo "	-c disables colored output"
 			echo "	-b ARG specify the root of the search (pwd by default)"
+			echo "	-B prints filename only, instead of whole path"
 			echo "	-D prints debug infos"
 			echo "	-d sets max depth to look in"
 			echo "	-e \"ARG...\" specifies the extensions of the search (all by default)"
@@ -73,6 +76,7 @@ while getopts "E:e:b:hcVvfFd:Dg" opt; do
 			FILES=1;;
 		F)	FIXED=1;;
 		g)	GIT_FILES=true;;
+		p)	ENTIRE_PATH=false;;
 		*)	echo $usage
 			echo "Try 'coffin -h' for more information."
 			exit 1;;
@@ -103,6 +107,9 @@ else
     raw_files=$(find -L "$ROOT"/ -maxdepth $MAXDEPTH "${prune_expr[@]}" -type f -print)
 fi
 files=$(grep -Pi "$EXT\$" <<< "$raw_files" | sed 's/ /\\ /g')
+if ! $ENTIRE_PATH; then
+    files=${files//$ROOT\//}
+fi
 debug files
 #TODO: tidy it up
 [[ $FIXED = 0 ]] && raw=$(xargs grep -PHIin $COLOR "$pattern" <<< $files)
