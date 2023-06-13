@@ -117,7 +117,7 @@ debug files
 debug raw
 
 if [ $FILES -eq 1 ]; then
-	echo -e "$raw" | sed -e 's/:.*//'
+	echo -e "$raw" | sed -e 's/:.*//' | sort -u
 elif [ $VIM -eq 0 ]; then
 	echo -e "$raw"	
 elif [ $VIM -eq 1 ]; then
