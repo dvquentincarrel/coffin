@@ -2,9 +2,10 @@ import argparse
 import argparse
 parser = argparse.ArgumentParser(prog="coffin", usage="%(prog)s [OPTIONS]... PATTERN")
 # Regexes
-parser.add_argument("-F", "--fixed", help="interprets PATTERN as a fixed string", action="store_true")
-parser.add_argument("--basic", help="interprets PATTERN as a BRE", action="store_true")
-parser.add_argument("--extended", help="interprets PATTERN as an ERE", action="store_true")
+regexes = parser.add_mutually_exclusive_group()
+regexes.add_argument("-F", "--fixed", help="interprets PATTERN as a fixed string", action="store_true")
+regexes.add_argument("--basic", help="interprets PATTERN as a BRE", action="store_true")
+regexes.add_argument("--extended", help="interprets PATTERN as an ERE", action="store_true")
 # Format
 parser.add_argument("-C", "--colors", help="toggles colored output", action="store_true")
 parser.add_argument("-E", "--exclude", help="toggles exclusion based on file extensions (-e option)", action="store_true")
