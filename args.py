@@ -1,6 +1,10 @@
 import argparse
 import argparse
-parser = argparse.ArgumentParser(prog="coffin", usage="%(prog)s [OPTIONS]... PATTERN")
+parser = argparse.ArgumentParser(
+    prog="coffin",
+    usage="%(prog)s [OPTIONS]... PATTERN",
+    description="Search for a pattern for all files under a directory"
+)
 # Regexes
 regexes = parser.add_mutually_exclusive_group()
 regexes.add_argument("-F", "--fixed", help="interprets PATTERN as a fixed string", action="store_true")
@@ -16,8 +20,8 @@ parser.add_argument("--case", help="toggles case sensitivity in pattern matching
 parser.add_argument("--lines-num", help="toggles outputting the line number of a match", action="store_true")
 # Filters
 parser.add_argument("-r", "--root", help="uses ROOT as the starting point to list files to process")
-parser.add_argument("-p", "--prune", help="prunes directories given")
-parser.add_argument("-e", "--ext", help="filters files based on file extensions given")
+parser.add_argument("-p", "--prune", help="prunes directories given", metavar="DIRS")
+parser.add_argument("-e", "--ext", help="filters files based on their extensions", metavar="EXTS")
 # Misc
 parser.add_argument("--debug", help="outputs debug informations to stderr", action="store_true")
 parser.add_argument("PATTERN", help="pattern to look for in files")
